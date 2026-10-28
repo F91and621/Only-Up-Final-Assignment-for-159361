@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// 让摄像机跟随玩家，并使用鼠标旋转视角�?
+// 摄像机跟随玩家，鼠标控制方向，滚轮控制距离。
 [RequireComponent(typeof(Camera))]
 public class BeginnerCameraController : MonoBehaviour
 {
@@ -42,7 +42,6 @@ public class BeginnerCameraController : MonoBehaviour
 
         if (mouse != null)
         {
-            // 滚轮向上时拉近镜头，向下时拉远镜头�?
             float scroll = mouse.scroll.ReadValue().y;
             distance -= scroll * zoomSensitivity;
             distance = Mathf.Clamp(distance, minimumDistance, maximumDistance);
@@ -81,13 +80,5 @@ public class BeginnerCameraController : MonoBehaviour
 
         transform.position = targetPosition + offset;
         transform.LookAt(targetPosition);
-    }
-
-    void OnValidate()
-    {
-        minimumDistance = Mathf.Max(0.1f, minimumDistance);
-        maximumDistance = Mathf.Max(minimumDistance, maximumDistance);
-        distance = Mathf.Clamp(distance, minimumDistance, maximumDistance);
-        zoomSensitivity = Mathf.Max(0f, zoomSensitivity);
     }
 }

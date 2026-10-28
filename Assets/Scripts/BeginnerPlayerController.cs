@@ -395,6 +395,13 @@ public class BeginnerPlayerController : MonoBehaviour
             {
                 isGrounded = true;
                 lastGroundedTime = Time.time;
+
+                ScoreObject scoreObject =
+                    collision.collider.GetComponentInParent<ScoreObject>();
+
+                if (scoreObject != null)
+                    scoreObject.TryAwardPoint();
+
                 return;
             }
         }

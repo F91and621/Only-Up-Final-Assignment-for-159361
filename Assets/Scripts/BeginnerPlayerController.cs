@@ -38,6 +38,14 @@ public class BeginnerPlayerController : MonoBehaviour
     public InputActionAsset playerActions;
     public Key resetKey = Key.R;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    [Header("测试飞行（仅 Editor / Development Build）")]
+    [Tooltip("按此键切换测试飞行模式。")]
+    public Key flightToggleKey = Key.F2;
+    [Tooltip("飞行时的移动速度。Shift 上升，Ctrl 下降，WASD 水平移动。")]
+    public float flightSpeed = 12f;
+#endif
+
     private Rigidbody playerRigidbody;
     private Collider playerCollider;
     private Animator playerAnimator;
@@ -51,6 +59,12 @@ public class BeginnerPlayerController : MonoBehaviour
     private float currentMoveSpeed;
     private InputAction resetAction;
     private bool shouldReset;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private bool isFlightEnabled;
+    private bool gravityWasEnabled;
+    private float flightVerticalInput;
+#endif
 
     void Start()
     {
@@ -98,6 +112,9 @@ public class BeginnerPlayerController : MonoBehaviour
         shortJumpGravityMultiplier = Mathf.Max(1f, shortJumpGravityMultiplier);
         fallGravityMultiplier = Mathf.Max(1f, fallGravityMultiplier);
         jumpBufferTime = Mathf.Max(0f, jumpBufferTime);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        flightSpeed = Mathf.Max(0f, flightSpeed);
+#endif
     }
 
     void Update()
@@ -114,6 +131,14 @@ public class BeginnerPlayerController : MonoBehaviour
             shouldReset = false;
             return;
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (isFlightEnabled)
+        {
+            MoveFlight();
+            return;
+        }
+#endif
 
         UpdateGroundedState();
         if (!isAttacking && CanJump()
@@ -157,6 +182,22 @@ public class BeginnerPlayerController : MonoBehaviour
             vertical = 1f;
 
         moveDirection = GetMoveDirection(horizontal, vertical);
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (keyboard[flightToggleKey].wasPressedThisFrame)
+            ToggleFlightMode();
+
+        if (isFlightEnabled)
+        {
+            flightVerticalInput = 0f;
+            if (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed)
+                flightVerticalInput += 1f;
+            if (keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed)
+                flightVerticalInput -= 1f;
+            return;
+        }
+#endif
+
         UpdateMoveSpeed(keyboard);
 
         if (keyboard.spaceKey.wasPressedThisFrame)
@@ -249,6 +290,50 @@ public class BeginnerPlayerController : MonoBehaviour
             playerRigidbody.MoveRotation(nextRotation);
         }
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    void MoveFlight()
+    {
+        isGrounded = false;
+
+        Vector3 flightDirection = moveDirection + Vector3.up * flightVerticalInput;
+        playerRigidbody.linearVelocity = flightDirection.normalized * flightSpeed;
+
+        if (moveDirection != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+            playerRigidbody.MoveRotation(Quaternion.Slerp(
+                playerRigidbody.rotation,
+                targetRotation,
+                turnSpeed * Time.fixedDeltaTime));
+        }
+    }
+
+    void ToggleFlightMode()
+    {
+        isFlightEnabled = !isFlightEnabled;
+        playerRigidbody.linearVelocity = Vector3.zero;
+        playerRigidbody.angularVelocity = Vector3.zero;
+
+        if (isFlightEnabled)
+        {
+            gravityWasEnabled = playerRigidbody.useGravity;
+            playerRigidbody.useGravity = false;
+            isGrounded = false;
+            isAttacking = false;
+            lastJumpPressedTime = float.NegativeInfinity;
+
+            if (playerAnimator != null)
+                playerAnimator.ResetTrigger("Attack");
+        }
+        else
+        {
+            playerRigidbody.useGravity = gravityWasEnabled;
+        }
+
+        Debug.Log($"Test flight mode: {(isFlightEnabled ? "enabled" : "disabled")}");
+    }
+#endif
 
     void Jump()
     {
@@ -412,7 +497,12 @@ public class BeginnerPlayerController : MonoBehaviour
         if (playerAnimator == null)
             return;
 
-        playerAnimator.SetFloat("Speed", isAttacking ? 0f : moveDirection.magnitude);
+        float animationMovement = isAttacking ? 0f : moveDirection.magnitude;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (isFlightEnabled)
+            animationMovement = 0f;
+#endif
+        playerAnimator.SetFloat("Speed", animationMovement);
         // 复用跑步动画，并按实际移动速度调整其播放速度。
         float runAnimationSpeed = currentMoveSpeed / Mathf.Max(moveSpeed, 0.01f);
         playerAnimator.SetFloat("AnimationSpeed", runAnimationSpeed);

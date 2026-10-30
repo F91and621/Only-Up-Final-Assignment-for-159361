@@ -1,0 +1,9 @@
+Monster asset used on the patrol platform:
+RPG Monster Duo PBR Polyart by Dungeon Mason (free)
+https://assetstore.unity.com/packages/3d/characters/creatures/rpg-monster-duo-pbr-polyart-157762
+License: Standard Unity Asset Store EULA
+
+The SlimePolyart prefab, its model, animations and texture are imported under
+Assets/RPG Monster DUO PBR Polyart. The platform enemy uses that prefab as its
+visible child; the PatrolStompEnemy component on the parent controls movement
+and the stomp interaction. PolyartDefault.mat was adapted to URP for this game.

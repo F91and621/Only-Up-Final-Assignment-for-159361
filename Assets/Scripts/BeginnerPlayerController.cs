@@ -59,6 +59,7 @@ public class BeginnerPlayerController : MonoBehaviour
     private float currentMoveSpeed;
     private InputAction resetAction;
     private bool shouldReset;
+    private float enemyBumpEndTime = float.NegativeInfinity;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     private bool isFlightEnabled;
@@ -148,7 +149,8 @@ public class BeginnerPlayerController : MonoBehaviour
             lastJumpPressedTime = float.NegativeInfinity;
         }
 
-        MovePlayer();
+        if (Time.time >= enemyBumpEndTime)
+            MovePlayer();
 
         if (!isGrounded)
         {
@@ -271,14 +273,14 @@ public class BeginnerPlayerController : MonoBehaviour
                 velocity.x = horizontalVelocity.x;
                 velocity.z = horizontalVelocity.z;
             }
-            playerRigidbody.linearVelocity = velocity;
         }
         else
         {
             velocity.x = moveDirection.x * currentMoveSpeed;
             velocity.z = moveDirection.z * currentMoveSpeed;
-            playerRigidbody.linearVelocity = velocity;
         }
+
+        playerRigidbody.linearVelocity = velocity;
 
         if (moveDirection != Vector3.zero)
         {
@@ -365,6 +367,17 @@ public class BeginnerPlayerController : MonoBehaviour
             resetPoint = point;
     }
 
+    public void ApplyEnemyBump(Vector3 bumpVelocity, float controlDelay)
+    {
+        if (playerRigidbody == null)
+            playerRigidbody = GetComponent<Rigidbody>();
+
+        playerRigidbody.linearVelocity = bumpVelocity;
+        isGrounded = false;
+        lastGroundedTime = float.NegativeInfinity;
+        enemyBumpEndTime = Time.time + controlDelay;
+    }
+
     void ResetPlayer()
     {
         StopAllCoroutines();
@@ -377,6 +390,7 @@ public class BeginnerPlayerController : MonoBehaviour
         isAttacking = false;
         lastGroundedTime = float.NegativeInfinity;
         lastJumpPressedTime = float.NegativeInfinity;
+        enemyBumpEndTime = float.NegativeInfinity;
 
         if (playerAnimator != null)
         {
@@ -439,7 +453,12 @@ public class BeginnerPlayerController : MonoBehaviour
         Bounds bounds = playerCollider.bounds;
         Vector3 origin = new Vector3(bounds.center.x, bounds.min.y + 0.35f, bounds.center.z);
         float sampleOffset = Mathf.Min(bounds.extents.x, bounds.extents.z) * 0.5f;
-        isGrounded = HasGroundBelow(origin)
+        // 细木梁可能恰好落在射线之间；先用球体覆盖脚掌范围。
+        Vector3 sphereOrigin = new Vector3(bounds.center.x,
+            bounds.min.y + 0.65f, bounds.center.z);
+        float sphereRadius = Mathf.Min(bounds.extents.x, bounds.extents.z) * 0.7f;
+        isGrounded = HasGroundBelowSphere(sphereOrigin, sphereRadius)
+            || HasGroundBelow(origin)
             || HasGroundBelow(origin + Vector3.forward * sampleOffset)
             || HasGroundBelow(origin + Vector3.back * sampleOffset)
             || HasGroundBelow(origin + Vector3.left * sampleOffset)
@@ -454,6 +473,14 @@ public class BeginnerPlayerController : MonoBehaviour
     bool HasGroundBelow(Vector3 origin)
     {
         return Physics.Raycast(origin, Vector3.down, out RaycastHit hit,
+                0.55f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+            && !hit.collider.transform.IsChildOf(transform)
+            && hit.normal.y >= minimumGroundNormalY;
+    }
+
+    bool HasGroundBelowSphere(Vector3 origin, float radius)
+    {
+        return Physics.SphereCast(origin, radius, Vector3.down, out RaycastHit hit,
                 0.55f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
             && !hit.collider.transform.IsChildOf(transform)
             && hit.normal.y >= minimumGroundNormalY;

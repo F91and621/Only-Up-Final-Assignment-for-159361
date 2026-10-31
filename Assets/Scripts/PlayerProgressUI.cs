@@ -18,6 +18,7 @@ public class PlayerProgressUI : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        ScoreObject.ConfigureCoursePlatforms();
     }
 
     void Start()

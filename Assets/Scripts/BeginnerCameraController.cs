@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// 让摄像机跟随玩家，并使用鼠标旋转视角�?
+// 让摄像机跟随玩家，并使用鼠标旋转视角。
 [RequireComponent(typeof(Camera))]
 public class BeginnerCameraController : MonoBehaviour
 {
@@ -38,11 +38,10 @@ public class BeginnerCameraController : MonoBehaviour
     void Update()
     {
         Mouse mouse = Mouse.current;
-        Keyboard keyboard = Keyboard.current;
 
         if (mouse != null)
         {
-            // 滚轮向上时拉近镜头，向下时拉远镜头�?
+            // 滚轮向上时拉近镜头，向下时拉远镜头。
             float scroll = mouse.scroll.ReadValue().y;
             distance -= scroll * zoomSensitivity;
             distance = Mathf.Clamp(distance, minimumDistance, maximumDistance);
@@ -54,18 +53,6 @@ public class BeginnerCameraController : MonoBehaviour
                 pitch -= mouseMove.y * mouseSensitivity;
                 pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
             }
-        }
-
-        if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-
-        if (mouse != null && mouse.leftButton.wasPressedThisFrame)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
         }
     }
 

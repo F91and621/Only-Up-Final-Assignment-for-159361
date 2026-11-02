@@ -169,10 +169,9 @@ public class CourseStartMenu : MonoBehaviour
     {
         var records = RunRecordManager.GetSortedRecords();
         if (records.Count == 0)
-            return "ESC  -  BACK\n\nNO COMPLETED RUNS YET";
+            return "NO COMPLETED RUNS YET";
 
-        string result = "ESC  -  BACK\n\n"
-            + "RANK     DATE / TIME              DURATION\n\n";
+        string result = "RANK     DATE / TIME              DURATION\n\n";
         for (int i = 0; i < records.Count; i++)
         {
             RunRecord record = records[i];

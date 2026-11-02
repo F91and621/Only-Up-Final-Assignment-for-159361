@@ -78,6 +78,7 @@ public class CourseStartMenu : MonoBehaviour
         Canvas canvas = menuCanvas.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
+        canvas.pixelPerfect = true;
 
         CanvasScaler scaler = menuCanvas.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -157,9 +158,15 @@ public class CourseStartMenu : MonoBehaviour
         text.font = font;
         text.text = value;
         text.fontSize = size;
+        text.fontStyle = FontStyle.Bold;
         text.alignment = TextAnchor.MiddleCenter;
-        text.color = color;
+        text.color = Color.white;
         text.raycastTarget = false;
+
+        Outline outline = label.AddComponent<Outline>();
+        outline.effectColor = Color.black;
+        outline.effectDistance = new Vector2(1.5f, -1.5f);
+        outline.useGraphicAlpha = true;
         return text;
     }
 

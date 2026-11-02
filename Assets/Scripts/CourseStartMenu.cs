@@ -101,12 +101,8 @@ public class CourseStartMenu : MonoBehaviour
         ClearPage();
 
         pagePanel = CreatePanel("Main Buttons", menuCanvas.transform,
-            new Color(1f, 1f, 1f, 0.96f));
+            Color.clear);
         SetRect(pagePanel, new Vector2(470f, 390f), new Vector2(-610f, -185f));
-        AddBlackBorder(pagePanel.gameObject);
-
-        CreateText("Menu Title", pagePanel, "MAIN MENU", 42,
-            new Vector2(0f, 135f), new Vector2(400f, 58f));
         CreateButton(pagePanel, "START GAME", 45f, StartGame);
         CreateButton(pagePanel, "HOW TO PLAY", -50f, ShowHelpPage);
         CreateButton(pagePanel, "RECORDS", -145f, ShowRecordsPage);

@@ -13,15 +13,19 @@ public class CourseStartMenu : MonoBehaviour
     private GameObject menuCanvas;
     private RectTransform pagePanel;
     private Font font;
+    private Text volumeText;
     private bool started;
     private bool finished;
     private int currentPage;
+
+    private const string VolumeKey = "GameVolume";
 
     void Awake()
     {
         playerController = FindFirstObjectByType<BeginnerPlayerController>();
         cameraController = FindFirstObjectByType<BeginnerCameraController>();
         font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        AudioListener.volume = PlayerPrefs.GetFloat(VolumeKey, 1f);
 
         SetPlayerControl(false);
         Time.timeScale = 0f;
@@ -106,6 +110,7 @@ public class CourseStartMenu : MonoBehaviour
         CreateButton(pagePanel, "START GAME", 45f, StartGame);
         CreateButton(pagePanel, "HOW TO PLAY", -50f, ShowHelpPage);
         CreateButton(pagePanel, "RECORDS", -145f, ShowRecordsPage);
+        CreateButton(pagePanel, "SETTINGS", -240f, ShowSettingsPage);
     }
 
     public void ShowHelpPage()
@@ -159,6 +164,52 @@ public class CourseStartMenu : MonoBehaviour
         recordsText.lineSpacing = 1.25f;
 
         CreateButton(pagePanel, "BACK", -320f, ShowMainPage);
+    }
+
+    public void ShowSettingsPage()
+    {
+        currentPage = 3;
+        ClearPage();
+
+        pagePanel = CreatePanel("Settings Page", menuCanvas.transform, Color.white);
+        SetRect(pagePanel, new Vector2(700f, 600f), Vector2.zero);
+        AddBlackBorder(pagePanel.gameObject);
+
+        CreateText("Settings Title", pagePanel, "SETTINGS", 50,
+            new Vector2(0f, 225f), new Vector2(600f, 70f));
+
+        volumeText = CreateText("Volume Text", pagePanel, "", 34,
+            new Vector2(0f, 125f), new Vector2(500f, 60f));
+        UpdateVolumeText();
+
+        CreateButton(pagePanel, "VOLUME +", 25f, IncreaseVolume);
+        CreateButton(pagePanel, "VOLUME -", -70f, DecreaseVolume);
+        CreateButton(pagePanel, "BACK", -220f, ShowMainPage);
+    }
+
+    void IncreaseVolume()
+    {
+        ChangeVolume(0.1f);
+    }
+
+    void DecreaseVolume()
+    {
+        ChangeVolume(-0.1f);
+    }
+
+    void ChangeVolume(float amount)
+    {
+        AudioListener.volume = Mathf.Clamp01(AudioListener.volume + amount);
+        PlayerPrefs.SetFloat(VolumeKey, AudioListener.volume);
+        PlayerPrefs.Save();
+        UpdateVolumeText();
+    }
+
+    void UpdateVolumeText()
+    {
+        if (volumeText != null)
+            volumeText.text = "VOLUME: "
+                + Mathf.RoundToInt(AudioListener.volume * 100f) + "%";
     }
 
     string BuildRecordsText()
@@ -284,6 +335,7 @@ public class CourseStartMenu : MonoBehaviour
         if (pagePanel != null)
             Destroy(pagePanel.gameObject);
         pagePanel = null;
+        volumeText = null;
     }
 
     void SetRect(RectTransform rect, Vector2 size, Vector2 position)

@@ -4,8 +4,8 @@ using UnityEngine;
 public class AttackBallController : MonoBehaviour
 {
     public float detectionRange = 50f;
-    public float attackSpeed = 18f;
-    public float returnSpeed = 22f;
+    public float attackSpeed = 25f;
+    public float returnSpeed = 28f;
     public float attackInterval = 10f;
     public float maximumAttackTime = 3f;
     public float freezeDuration = 1f;

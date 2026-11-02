@@ -29964,8 +29964,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AttackBallController
   detectionRange: 50
-  attackSpeed: 18
-  returnSpeed: 22
+  attackSpeed: 25
+  returnSpeed: 28
   attackInterval: 10
   maximumAttackTime: 3
   freezeDuration: 1

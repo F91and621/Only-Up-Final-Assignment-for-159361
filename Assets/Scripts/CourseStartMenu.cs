@@ -123,6 +123,7 @@ public class CourseStartMenu : MonoBehaviour
         CreateHintRow(panel, font, "WASD   MOVE", 620f);
         CreateHintRow(panel, font, "SPACE   JUMP", 688f);
         CreateHintRow(panel, font, "E   SAVE     R   RETURN", 756f);
+        CreateHintRow(panel, font, "ESC   PAUSE", 824f);
 
         if (FindFirstObjectByType<EventSystem>() == null)
         {

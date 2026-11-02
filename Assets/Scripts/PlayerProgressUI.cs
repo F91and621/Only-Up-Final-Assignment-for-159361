@@ -11,9 +11,11 @@ public class PlayerProgressUI : MonoBehaviour
     [Header("TEXT")]
     [SerializeField] private Text heightText;
     [SerializeField] private Text scoreText;
+    [SerializeField] private Text timeText;
 
     private float startHeight;
     private int score;
+    private float gameTime;
 
     void Awake()
     {
@@ -34,6 +36,9 @@ public class PlayerProgressUI : MonoBehaviour
 
     void Update()
     {
+        gameTime += Time.deltaTime;
+        UpdateTimeText();
+
         if (player == null || heightText == null)
             return;
 
@@ -55,5 +60,15 @@ public class PlayerProgressUI : MonoBehaviour
     {
         if (scoreText != null)
             scoreText.text = $"SCORE: {score}";
+    }
+
+    void UpdateTimeText()
+    {
+        if (timeText == null)
+            return;
+
+        int minutes = Mathf.FloorToInt(gameTime / 60f);
+        int seconds = Mathf.FloorToInt(gameTime % 60f);
+        timeText.text = $"TIME: {minutes:00}:{seconds:00}";
     }
 }

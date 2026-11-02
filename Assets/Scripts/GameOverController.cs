@@ -37,6 +37,15 @@ public class GameOverController : MonoBehaviour
 
     public void RestartGame()
     {
+        PauseMenuController pauseMenu =
+            FindFirstObjectByType<PauseMenuController>();
+
+        if (pauseMenu != null)
+        {
+            pauseMenu.RestartGame();
+            return;
+        }
+
         Time.timeScale = 1f;
 
         Scene activeScene = SceneManager.GetActiveScene();

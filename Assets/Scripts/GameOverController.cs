@@ -47,8 +47,6 @@ public class GameOverController : MonoBehaviour
         }
 
         Time.timeScale = 1f;
-
-        Scene activeScene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(activeScene.buildIndex);
+        SceneManager.LoadScene(gameObject.scene.path);
     }
 }

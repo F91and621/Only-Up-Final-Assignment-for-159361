@@ -69,7 +69,7 @@ public class PauseMenuController : MonoBehaviour
         Time.timeScale = 1f;
         yield return null;
 
-        Scene scene = SceneManager.GetActiveScene();
-        SceneManager.LoadSceneAsync(scene.buildIndex);
+        string scenePath = gameObject.scene.path;
+        SceneManager.LoadScene(scenePath);
     }
 }

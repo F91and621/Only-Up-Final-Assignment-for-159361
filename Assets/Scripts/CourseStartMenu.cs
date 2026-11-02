@@ -34,7 +34,7 @@ public class CourseStartMenu : MonoBehaviour
     void Update()
     {
         Keyboard keyboard = Keyboard.current;
-        if (!started && currentPage != 0 && keyboard != null
+        if ((!started || finished) && currentPage != 0 && keyboard != null
             && keyboard.escapeKey.wasPressedThisFrame)
         {
             ShowMainPage();
@@ -159,11 +159,9 @@ public class CourseStartMenu : MonoBehaviour
 
         Text recordsText = CreateText("Records List", pagePanel,
             BuildRecordsText(), 27, new Vector2(0f, 25f), new Vector2(860f, 500f));
-        recordsText.alignment = TextAnchor.UpperCenter;
+        recordsText.alignment = TextAnchor.UpperLeft;
         recordsText.lineSpacing = 1.25f;
 
-        CreateText("Records Esc Hint", pagePanel, "ESC  -  BACK", 22,
-            new Vector2(0f, -270f), new Vector2(300f, 36f));
         CreateButton(pagePanel, "BACK", -320f, ShowMainPage);
     }
 
@@ -171,9 +169,10 @@ public class CourseStartMenu : MonoBehaviour
     {
         var records = RunRecordManager.GetSortedRecords();
         if (records.Count == 0)
-            return "NO COMPLETED RUNS YET";
+            return "ESC  -  BACK\n\nNO COMPLETED RUNS YET";
 
-        string result = "RANK     DATE / TIME              DURATION\n\n";
+        string result = "ESC  -  BACK\n\n"
+            + "RANK     DATE / TIME              DURATION\n\n";
         for (int i = 0; i < records.Count; i++)
         {
             RunRecord record = records[i];

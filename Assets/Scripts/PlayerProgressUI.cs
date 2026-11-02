@@ -72,7 +72,7 @@ public class PlayerProgressUI : MonoBehaviour
         text.color = Color.black;
         text.fontStyle = FontStyle.Bold;
         text.fontSize = 34;
-        text.alignment = TextAnchor.MiddleCenter;
+        text.alignment = TextAnchor.MiddleLeft;
     }
 
     void UpdateScoreText()

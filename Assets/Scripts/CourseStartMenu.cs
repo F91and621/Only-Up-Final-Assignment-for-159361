@@ -88,43 +88,38 @@ public class CourseStartMenu : MonoBehaviour
 
         Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         RectTransform background = CreatePanel("Background", menuCanvas.transform,
-            new Color(0f, 0f, 0f, 0.12f));
+            new Color(0f, 0f, 0f, 0.45f));
         Stretch(background);
 
-        RectTransform panel = CreatePanel("Transparent Left Menu", background,
-            new Color(0.04f, 0.07f, 0.11f, 0.22f));
-        panel.anchorMin = new Vector2(0f, 0f);
-        panel.anchorMax = new Vector2(0f, 1f);
-        panel.pivot = new Vector2(0f, 0.5f);
-        panel.sizeDelta = new Vector2(600f, 0f);
+        RectTransform panel = CreatePanel("Center Menu", background, Color.white);
+        panel.anchorMin = panel.anchorMax = new Vector2(0.5f, 0.5f);
+        panel.pivot = new Vector2(0.5f, 0.5f);
+        panel.sizeDelta = new Vector2(680f, 820f);
         panel.anchoredPosition = Vector2.zero;
+        AddBlackBorder(panel.gameObject);
 
-        Text title = CreateText("Title", panel, font, "ONLY UP", 88,
-            Color.white, Vector2.zero, new Vector2(480f, 118f));
-        PlaceTopLeft(title.rectTransform, 92f, 100f);
-        title.alignment = TextAnchor.MiddleLeft;
-        Text subtitle = CreateText("Subtitle", panel, font, "FURNITURE CLIMB", 32,
-            Color.white, Vector2.zero, new Vector2(470f, 54f));
-        PlaceTopLeft(subtitle.rectTransform, 100f, 218f);
-        subtitle.alignment = TextAnchor.MiddleLeft;
+        CreateText("Title", panel, font, "ONLY UP", 88,
+            Color.black, new Vector2(0f, 285f), new Vector2(560f, 118f));
+        CreateText("Subtitle", panel, font, "FURNITURE CLIMB", 32,
+            Color.black, new Vector2(0f, 210f), new Vector2(520f, 54f));
 
-        RectTransform buttonRect = CreatePanel("Start Button", panel,
-            new Color(1f, 1f, 1f, 0.96f));
+        RectTransform buttonRect = CreatePanel("Start Button", panel, Color.white);
         buttonRect.sizeDelta = new Vector2(360f, 78f);
-        PlaceTopLeft(buttonRect, 96f, 520f);
+        buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
+        buttonRect.anchoredPosition = new Vector2(0f, 90f);
+        AddBlackBorder(buttonRect.gameObject);
         Button button = buttonRect.gameObject.AddComponent<Button>();
         button.targetGraphic = buttonRect.GetComponent<Image>();
         button.targetGraphic.raycastTarget = true;
         button.onClick.AddListener(StartGame);
-        Text buttonText = CreateText("Button Label", buttonRect, font, "START GAME", 33,
-            new Color(0.06f, 0.08f, 0.1f, 1f), Vector2.zero,
+        CreateText("Button Label", buttonRect, font, "START GAME", 33,
+            Color.black, Vector2.zero,
             new Vector2(322f, 70f));
-        buttonText.alignment = TextAnchor.MiddleLeft;
 
-        CreateHintRow(panel, font, "WASD   MOVE", 620f);
-        CreateHintRow(panel, font, "SPACE   JUMP", 688f);
-        CreateHintRow(panel, font, "E   SAVE     R   RETURN", 756f);
-        CreateHintRow(panel, font, "ESC   PAUSE", 824f);
+        CreateHintRow(panel, font, "WASD   MOVE", -20f);
+        CreateHintRow(panel, font, "SPACE   JUMP", -90f);
+        CreateHintRow(panel, font, "E   SAVE     R   RETURN", -160f);
+        CreateHintRow(panel, font, "ESC   PAUSE", -230f);
 
         if (FindFirstObjectByType<EventSystem>() == null)
         {
@@ -160,33 +155,29 @@ public class CourseStartMenu : MonoBehaviour
         text.fontSize = size;
         text.fontStyle = FontStyle.Bold;
         text.alignment = TextAnchor.MiddleCenter;
-        text.color = Color.white;
+        text.color = color;
         text.raycastTarget = false;
-
-        Outline outline = label.AddComponent<Outline>();
-        outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(1.5f, -1.5f);
-        outline.useGraphicAlpha = true;
         return text;
     }
 
-    void CreateHintRow(Transform parent, Font font, string value, float top)
+    void CreateHintRow(Transform parent, Font font, string value, float y)
     {
-        RectTransform row = CreatePanel(value, parent,
-            new Color(0.83f, 0.87f, 0.9f, 0.42f));
+        RectTransform row = CreatePanel(value, parent, Color.white);
         row.sizeDelta = new Vector2(360f, 54f);
-        PlaceTopLeft(row, 96f, top);
-        Text label = CreateText("Hint", row, font, value, 23,
-            new Color(0.08f, 0.1f, 0.13f, 1f), Vector2.zero,
+        row.anchorMin = row.anchorMax = new Vector2(0.5f, 0.5f);
+        row.anchoredPosition = new Vector2(0f, y);
+        AddBlackBorder(row.gameObject);
+        CreateText("Hint", row, font, value, 23,
+            Color.black, Vector2.zero,
             new Vector2(326f, 54f));
-        label.alignment = TextAnchor.MiddleLeft;
     }
 
-    void PlaceTopLeft(RectTransform rect, float x, float y)
+    void AddBlackBorder(GameObject target)
     {
-        rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = new Vector2(x, -y);
+        Outline outline = target.AddComponent<Outline>();
+        outline.effectColor = Color.black;
+        outline.effectDistance = new Vector2(3f, -3f);
+        outline.useGraphicAlpha = true;
     }
 
     void Stretch(RectTransform rect)

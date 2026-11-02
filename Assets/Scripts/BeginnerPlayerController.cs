@@ -60,6 +60,8 @@ public class BeginnerPlayerController : MonoBehaviour
     private InputAction resetAction;
     private bool shouldReset;
     private float enemyBumpEndTime = float.NegativeInfinity;
+    private float freezeEndTime = float.NegativeInfinity;
+    private bool isFrozen;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     private bool isFlightEnabled;
@@ -120,6 +122,10 @@ public class BeginnerPlayerController : MonoBehaviour
 
     void Update()
     {
+        UpdateFreeze();
+        if (isFrozen)
+            return;
+
         ReadInput();
         UpdateAnimation();
     }
@@ -130,6 +136,13 @@ public class BeginnerPlayerController : MonoBehaviour
         {
             ResetPlayer();
             shouldReset = false;
+            return;
+        }
+
+        if (isFrozen)
+        {
+            playerRigidbody.linearVelocity = Vector3.zero;
+            playerRigidbody.angularVelocity = Vector3.zero;
             return;
         }
 
@@ -384,6 +397,27 @@ public class BeginnerPlayerController : MonoBehaviour
         enemyBumpEndTime = Time.time + controlDelay;
     }
 
+    public void FreezeForSeconds(float seconds)
+    {
+        isFrozen = true;
+        freezeEndTime = Time.time + seconds;
+        playerRigidbody.linearVelocity = Vector3.zero;
+        playerRigidbody.angularVelocity = Vector3.zero;
+
+        if (playerAnimator != null)
+            playerAnimator.speed = 0f;
+    }
+
+    void UpdateFreeze()
+    {
+        if (!isFrozen || Time.time < freezeEndTime)
+            return;
+
+        isFrozen = false;
+        if (playerAnimator != null)
+            playerAnimator.speed = 1f;
+    }
+
     void ResetPlayer()
     {
         StopAllCoroutines();
@@ -397,9 +431,12 @@ public class BeginnerPlayerController : MonoBehaviour
         lastGroundedTime = float.NegativeInfinity;
         lastJumpPressedTime = float.NegativeInfinity;
         enemyBumpEndTime = float.NegativeInfinity;
+        freezeEndTime = float.NegativeInfinity;
+        isFrozen = false;
 
         if (playerAnimator != null)
         {
+            playerAnimator.speed = 1f;
             playerAnimator.ResetTrigger("Jump");
             playerAnimator.ResetTrigger("Attack");
             playerAnimator.Play("Base Layer.Idle", 0, 0f);

@@ -34,6 +34,13 @@ public class CourseStartMenu : MonoBehaviour
     void Update()
     {
         Keyboard keyboard = Keyboard.current;
+        if (!started && currentPage != 0 && keyboard != null
+            && keyboard.escapeKey.wasPressedThisFrame)
+        {
+            ShowMainPage();
+            return;
+        }
+
         if (!started && currentPage == 0 && keyboard != null
             && keyboard.enterKey.wasPressedThisFrame)
         {
@@ -155,6 +162,8 @@ public class CourseStartMenu : MonoBehaviour
         recordsText.alignment = TextAnchor.UpperCenter;
         recordsText.lineSpacing = 1.25f;
 
+        CreateText("Records Esc Hint", pagePanel, "ESC  -  BACK", 22,
+            new Vector2(0f, -270f), new Vector2(300f, 36f));
         CreateButton(pagePanel, "BACK", -320f, ShowMainPage);
     }
 

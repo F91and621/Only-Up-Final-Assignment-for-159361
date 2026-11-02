@@ -69,7 +69,7 @@ public class BeginnerPlayerController : MonoBehaviour
     private float flightVerticalInput;
 #endif
 
-    void Start()
+    void Awake()
     {
         playerRigidbody = GetComponent<Rigidbody>();
         playerCollider = GetComponent<Collider>();

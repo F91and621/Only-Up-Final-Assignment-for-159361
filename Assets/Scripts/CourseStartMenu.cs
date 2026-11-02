@@ -21,14 +21,7 @@ public class CourseStartMenu : MonoBehaviour
     {
         playerController = FindFirstObjectByType<BeginnerPlayerController>();
         cameraController = FindFirstObjectByType<BeginnerCameraController>();
-        font = Resources.Load<Font>("Fonts/Roboto-Bold");
-        if (font == null)
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        Text[] sceneTexts = FindObjectsByType<Text>(
-            FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (Text sceneText in sceneTexts)
-            sceneText.font = font;
+        font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         SetPlayerControl(false);
         Time.timeScale = 0f;

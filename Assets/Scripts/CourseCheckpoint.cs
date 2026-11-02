@@ -10,12 +10,6 @@ public class CourseCheckpoint : MonoBehaviour
     private Rigidbody nearbyBody;
     private Collider nearbyCollider;
     private float savedMessageUntil;
-    private Font font;
-
-    void Awake()
-    {
-        font = Resources.Load<Font>("Fonts/Roboto-Bold");
-    }
 
     void OnTriggerStay(Collider other)
     {
@@ -82,7 +76,6 @@ public class CourseCheckpoint : MonoBehaviour
             return;
 
         GUIStyle style = new GUIStyle(GUI.skin.label);
-        style.font = font;
         style.fontSize = 22;
         style.alignment = TextAnchor.MiddleCenter;
         GUIStyle shadow = new GUIStyle(style);

@@ -11593,7 +11593,7 @@ GameObject:
   - component: {fileID: 676399977}
   - component: {fileID: 676399976}
   m_Layer: 5
-  m_Name: Restart Button
+  m_Name: Return To Menu Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11665,7 +11665,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1114636042}
         m_TargetAssemblyTypeName: GameOverController, Assembly-CSharp
-        m_MethodName: RestartGame
+        m_MethodName: ReturnToMenu
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -21557,7 +21557,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: GAME OVER
+  m_Text: FAILED
 --- !u!222 &1342341850
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -26975,7 +26975,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: RESTART
+  m_Text: RETURN TO MENU
 --- !u!222 &1648190125
 CanvasRenderer:
   m_ObjectHideFlags: 0

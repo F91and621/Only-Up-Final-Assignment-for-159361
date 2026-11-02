@@ -35,7 +35,7 @@ public class GameOverController : MonoBehaviour
         Cursor.visible = true;
     }
 
-    public void RestartGame()
+    public void ReturnToMenu()
     {
         PauseMenuController pauseMenu =
             FindFirstObjectByType<PauseMenuController>();

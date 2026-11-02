@@ -2,79 +2,187 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 游戏开始前显示菜单，点击按钮后开启角色和镜头控制。
+// 开始菜单、说明页和记录页都放在这个脚本里。
 public class CourseStartMenu : MonoBehaviour
 {
     private BeginnerPlayerController playerController;
     private BeginnerCameraController cameraController;
     private GameObject menuCanvas;
+    private RectTransform pagePanel;
+    private Font font;
     private bool started;
+    private bool finished;
+    private int currentPage;
 
     void Awake()
     {
         playerController = FindFirstObjectByType<BeginnerPlayerController>();
         cameraController = FindFirstObjectByType<BeginnerCameraController>();
+        font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-        if (playerController != null)
-            playerController.enabled = false;
-
-        if (cameraController != null)
-        {
-            cameraController.enabled = false;
-            Camera camera = cameraController.GetComponent<Camera>();
-            if (camera != null && playerController != null)
-            {
-                camera.transform.position = playerController.transform.position
-                    + new Vector3(-10f, 8f, -12f);
-                camera.transform.LookAt(playerController.transform.position
-                    + new Vector3(4f, 4f, 5f));
-            }
-        }
-
+        SetPlayerControl(false);
         Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        UnlockMouse();
 
         CreateMenu();
+        ShowMainPage();
     }
 
     void Update()
     {
         Keyboard keyboard = Keyboard.current;
-        if (!started && keyboard != null && keyboard.enterKey.wasPressedThisFrame)
+        if (!started && currentPage == 0 && keyboard != null
+            && keyboard.enterKey.wasPressedThisFrame)
+        {
             StartGame();
+        }
     }
 
     public void StartGame()
     {
+        if (finished)
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(gameObject.scene.path);
+            return;
+        }
+
         if (started)
             return;
 
         started = true;
         Time.timeScale = 1f;
+        SetPlayerControl(true);
 
         if (menuCanvas != null)
+        {
             Destroy(menuCanvas);
-        if (playerController != null)
-            playerController.enabled = true;
-        if (cameraController != null)
-            cameraController.enabled = true;
+            menuCanvas = null;
+        }
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
-    void OnDestroy()
+    public void FinishGame()
     {
-        Time.timeScale = 1f;
+        if (finished)
+            return;
+
+        finished = true;
+        float finalTime = 0f;
+        if (PlayerProgressUI.Instance != null)
+            finalTime = PlayerProgressUI.Instance.GetGameTime();
+
+        RunRecordManager.AddRecord(finalTime);
+        SetPlayerControl(false);
+        Time.timeScale = 0f;
+        UnlockMouse();
+
+        if (menuCanvas == null)
+            CreateMenu();
+
+        ShowRecordsPage();
+    }
+
+    public void ShowMainPage()
+    {
+        currentPage = 0;
+        ClearPage();
+
+        pagePanel = CreatePanel("Main Buttons", menuCanvas.transform,
+            new Color(1f, 1f, 1f, 0.96f));
+        SetRect(pagePanel, new Vector2(470f, 390f), new Vector2(-610f, -185f));
+        AddBlackBorder(pagePanel.gameObject);
+
+        CreateText("Menu Title", pagePanel, "MAIN MENU", 42,
+            new Vector2(0f, 135f), new Vector2(400f, 58f));
+        CreateButton(pagePanel, "START GAME", 45f, StartGame);
+        CreateButton(pagePanel, "HOW TO PLAY", -50f, ShowHelpPage);
+        CreateButton(pagePanel, "RECORDS", -145f, ShowRecordsPage);
+    }
+
+    public void ShowHelpPage()
+    {
+        currentPage = 1;
+        ClearPage();
+
+        pagePanel = CreatePanel("How To Play Page", menuCanvas.transform, Color.white);
+        SetRect(pagePanel, new Vector2(980f, 790f), Vector2.zero);
+        AddBlackBorder(pagePanel.gameObject);
+
+        CreateText("Help Title", pagePanel, "HOW TO PLAY", 50,
+            new Vector2(0f, 315f), new Vector2(860f, 75f));
+
+        string help =
+            "WASD  -  MOVE\n" +
+            "SPACE  -  JUMP\n" +
+            "E  -  SAVE CHECKPOINT\n" +
+            "R  -  RETURN TO CHECKPOINT\n" +
+            "ESC  -  PAUSE\n\n" +
+            "ENEMIES\n" +
+            "The slime patrols high platforms. Jump on it or avoid its side.\n\n" +
+            "TOWER\n" +
+            "Inside 50 metres, the tower attacks every 10 seconds.\n" +
+            "Keep moving and dodge the blue ball. A hit freezes you for 1 second.\n" +
+            "Climb out of the tower's range to continue safely.";
+
+        Text helpText = CreateText("Help Text", pagePanel, help, 27,
+            new Vector2(0f, 25f), new Vector2(850f, 500f));
+        helpText.alignment = TextAnchor.MiddleCenter;
+        helpText.lineSpacing = 1.15f;
+
+        CreateButton(pagePanel, "BACK", -320f, ShowMainPage);
+    }
+
+    public void ShowRecordsPage()
+    {
+        currentPage = 2;
+        ClearPage();
+
+        pagePanel = CreatePanel("Records Page", menuCanvas.transform, Color.white);
+        SetRect(pagePanel, new Vector2(980f, 790f), Vector2.zero);
+        AddBlackBorder(pagePanel.gameObject);
+
+        CreateText("Records Title", pagePanel, "RECORDS", 50,
+            new Vector2(0f, 320f), new Vector2(860f, 70f));
+
+        Text recordsText = CreateText("Records List", pagePanel,
+            BuildRecordsText(), 27, new Vector2(0f, 25f), new Vector2(860f, 500f));
+        recordsText.alignment = TextAnchor.UpperCenter;
+        recordsText.lineSpacing = 1.25f;
+
+        CreateButton(pagePanel, "BACK", -320f, ShowMainPage);
+    }
+
+    string BuildRecordsText()
+    {
+        var records = RunRecordManager.GetSortedRecords();
+        if (records.Count == 0)
+            return "NO COMPLETED RUNS YET";
+
+        string result = "RANK     DATE / TIME              DURATION\n\n";
+        for (int i = 0; i < records.Count; i++)
+        {
+            RunRecord record = records[i];
+            string current = record.id == RunRecordManager.CurrentId
+                ? "   CURRENT" : "";
+
+            result += (i + 1) + ".     " + record.date + "        "
+                + RunRecordManager.FormatTime(record.duration) + current + "\n";
+        }
+
+        return result;
     }
 
     void CreateMenu()
     {
         menuCanvas = new GameObject("Start Menu Canvas", typeof(Canvas),
             typeof(CanvasScaler), typeof(GraphicRaycaster));
+
         Canvas canvas = menuCanvas.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
@@ -86,40 +194,18 @@ public class CourseStartMenu : MonoBehaviour
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 0.5f;
 
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        RectTransform background = CreatePanel("Background", menuCanvas.transform,
-            new Color(0f, 0f, 0f, 0.45f));
-        Stretch(background);
+        GameObject cover = new GameObject("Game Cover", typeof(RectTransform),
+            typeof(RawImage));
+        cover.transform.SetParent(menuCanvas.transform, false);
+        RawImage coverImage = cover.GetComponent<RawImage>();
+        coverImage.texture = Resources.Load<Texture2D>("UI/OnlyUpCover");
+        coverImage.color = Color.white;
+        coverImage.raycastTarget = false;
+        Stretch(cover.GetComponent<RectTransform>());
 
-        RectTransform panel = CreatePanel("Center Menu", background, Color.white);
-        panel.anchorMin = panel.anchorMax = new Vector2(0.5f, 0.5f);
-        panel.pivot = new Vector2(0.5f, 0.5f);
-        panel.sizeDelta = new Vector2(680f, 820f);
-        panel.anchoredPosition = Vector2.zero;
-        AddBlackBorder(panel.gameObject);
-
-        CreateText("Title", panel, font, "ONLY UP", 88,
-            Color.black, new Vector2(0f, 285f), new Vector2(560f, 118f));
-        CreateText("Subtitle", panel, font, "FURNITURE CLIMB", 32,
-            Color.black, new Vector2(0f, 210f), new Vector2(520f, 54f));
-
-        RectTransform buttonRect = CreatePanel("Start Button", panel, Color.white);
-        buttonRect.sizeDelta = new Vector2(360f, 78f);
-        buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
-        buttonRect.anchoredPosition = new Vector2(0f, 90f);
-        AddBlackBorder(buttonRect.gameObject);
-        Button button = buttonRect.gameObject.AddComponent<Button>();
-        button.targetGraphic = buttonRect.GetComponent<Image>();
-        button.targetGraphic.raycastTarget = true;
-        button.onClick.AddListener(StartGame);
-        CreateText("Button Label", buttonRect, font, "START GAME", 33,
-            Color.black, Vector2.zero,
-            new Vector2(322f, 70f));
-
-        CreateHintRow(panel, font, "WASD   MOVE", -20f);
-        CreateHintRow(panel, font, "SPACE   JUMP", -90f);
-        CreateHintRow(panel, font, "E   SAVE     R   RETURN", -160f);
-        CreateHintRow(panel, font, "ESC   PAUSE", -230f);
+        RectTransform shade = CreatePanel("Cover Shade", menuCanvas.transform,
+            new Color(0f, 0f, 0f, 0.16f));
+        Stretch(shade);
 
         if (FindFirstObjectByType<EventSystem>() == null)
         {
@@ -127,6 +213,23 @@ public class CourseStartMenu : MonoBehaviour
                 typeof(EventSystem), typeof(InputSystemUIInputModule));
             eventSystem.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
         }
+    }
+
+    Button CreateButton(Transform parent, string label, float y,
+        UnityEngine.Events.UnityAction action)
+    {
+        RectTransform rect = CreatePanel(label + " Button", parent, Color.white);
+        SetRect(rect, new Vector2(350f, 72f), new Vector2(0f, y));
+        AddBlackBorder(rect.gameObject);
+
+        Button button = rect.gameObject.AddComponent<Button>();
+        button.targetGraphic = rect.GetComponent<Image>();
+        button.targetGraphic.raycastTarget = true;
+        button.onClick.AddListener(action);
+
+        CreateText("Label", rect, label, 30, Vector2.zero,
+            new Vector2(330f, 66f));
+        return button;
     }
 
     RectTransform CreatePanel(string name, Transform parent, Color color)
@@ -139,15 +242,14 @@ public class CourseStartMenu : MonoBehaviour
         return panel.GetComponent<RectTransform>();
     }
 
-    Text CreateText(string name, Transform parent, Font font, string value,
-        int size, Color color, Vector2 position, Vector2 dimensions)
+    Text CreateText(string name, Transform parent, string value, int size,
+        Vector2 position, Vector2 dimensions)
     {
         GameObject label = new GameObject(name, typeof(RectTransform), typeof(Text));
         label.transform.SetParent(parent, false);
+
         RectTransform rect = label.GetComponent<RectTransform>();
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = dimensions;
-        rect.anchoredPosition = position;
+        SetRect(rect, dimensions, position);
 
         Text text = label.GetComponent<Text>();
         text.font = font;
@@ -155,28 +257,45 @@ public class CourseStartMenu : MonoBehaviour
         text.fontSize = size;
         text.fontStyle = FontStyle.Bold;
         text.alignment = TextAnchor.MiddleCenter;
-        text.color = color;
+        text.color = Color.black;
         text.raycastTarget = false;
         return text;
     }
 
-    void CreateHintRow(Transform parent, Font font, string value, float y)
+    void SetPlayerControl(bool enabled)
     {
-        RectTransform row = CreatePanel(value, parent, Color.white);
-        row.sizeDelta = new Vector2(360f, 54f);
-        row.anchorMin = row.anchorMax = new Vector2(0.5f, 0.5f);
-        row.anchoredPosition = new Vector2(0f, y);
-        AddBlackBorder(row.gameObject);
-        CreateText("Hint", row, font, value, 23,
-            Color.black, Vector2.zero,
-            new Vector2(326f, 54f));
+        if (playerController != null)
+            playerController.enabled = enabled;
+        if (cameraController != null)
+            cameraController.enabled = enabled;
+    }
+
+    void UnlockMouse()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    void ClearPage()
+    {
+        if (pagePanel != null)
+            Destroy(pagePanel.gameObject);
+        pagePanel = null;
+    }
+
+    void SetRect(RectTransform rect, Vector2 size, Vector2 position)
+    {
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = size;
+        rect.anchoredPosition = position;
     }
 
     void AddBlackBorder(GameObject target)
     {
         Outline outline = target.AddComponent<Outline>();
         outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(3f, -3f);
+        outline.effectDistance = new Vector2(4f, -4f);
         outline.useGraphicAlpha = true;
     }
 
@@ -186,5 +305,10 @@ public class CourseStartMenu : MonoBehaviour
         rect.anchorMax = Vector2.one;
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
+    }
+
+    void OnDestroy()
+    {
+        Time.timeScale = 1f;
     }
 }

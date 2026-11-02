@@ -31,6 +31,9 @@ public class PlayerProgressUI : MonoBehaviour
         if (player != null)
             startHeight = player.transform.position.y;
 
+        MakeTextClear(heightText);
+        MakeTextClear(scoreText);
+        MakeTextClear(timeText);
         UpdateScoreText();
     }
 
@@ -54,6 +57,22 @@ public class PlayerProgressUI : MonoBehaviour
     {
         score++;
         UpdateScoreText();
+    }
+
+    public float GetGameTime()
+    {
+        return gameTime;
+    }
+
+    void MakeTextClear(Text text)
+    {
+        if (text == null)
+            return;
+
+        text.color = Color.black;
+        text.fontStyle = FontStyle.Bold;
+        text.fontSize = 34;
+        text.alignment = TextAnchor.MiddleCenter;
     }
 
     void UpdateScoreText()

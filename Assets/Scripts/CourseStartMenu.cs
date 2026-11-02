@@ -26,6 +26,7 @@ public class CourseStartMenu : MonoBehaviour
         cameraController = FindFirstObjectByType<BeginnerCameraController>();
         font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         AudioListener.volume = PlayerPrefs.GetFloat(VolumeKey, 1f);
+        StartBackgroundMusic();
 
         SetPlayerControl(false);
         Time.timeScale = 0f;
@@ -210,6 +211,23 @@ public class CourseStartMenu : MonoBehaviour
         if (volumeText != null)
             volumeText.text = "VOLUME: "
                 + Mathf.RoundToInt(AudioListener.volume * 100f) + "%";
+    }
+
+    void StartBackgroundMusic()
+    {
+        AudioClip music = Resources.Load<AudioClip>("Audio/BackgroundMusic");
+        if (music == null)
+            return;
+
+        AudioSource source = gameObject.GetComponent<AudioSource>();
+        if (source == null)
+            source = gameObject.AddComponent<AudioSource>();
+
+        source.clip = music;
+        source.loop = true;
+        source.playOnAwake = false;
+        source.spatialBlend = 0f;
+        source.Play();
     }
 
     string BuildRecordsText()

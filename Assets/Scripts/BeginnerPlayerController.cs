@@ -367,6 +367,12 @@ public class BeginnerPlayerController : MonoBehaviour
             resetPoint = point;
     }
 
+    public void RespawnAtResetPoint()
+    {
+        if (resetPoint != null)
+            shouldReset = true;
+    }
+
     public void ApplyEnemyBump(Vector3 bumpVelocity, float controlDelay)
     {
         if (playerRigidbody == null)

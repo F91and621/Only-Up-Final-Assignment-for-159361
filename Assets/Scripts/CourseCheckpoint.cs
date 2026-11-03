@@ -46,9 +46,14 @@ public class CourseCheckpoint : MonoBehaviour
 
         activated = true;
         nearbyPlayer.SetResetPoint(transform);
-        savedMessageUntil = Time.time + 3f;
 
-        Debug.Log("Checkpoint saved. Press R to return here.");
+        PlayerLifeSystem lifeSystem =
+            FindFirstObjectByType<PlayerLifeSystem>();
+
+        if (lifeSystem != null)
+            lifeSystem.ActivateLives(transform, nearbyPlayer);
+
+        savedMessageUntil = Time.time + 3f;
     }
 
     bool CanActivate()

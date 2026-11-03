@@ -35,11 +35,18 @@ public class GameOverController : MonoBehaviour
         Cursor.visible = true;
     }
 
-    public void RestartGame()
+    public void ReturnToMenu()
     {
-        Time.timeScale = 1f;
+        PauseMenuController pauseMenu =
+            FindFirstObjectByType<PauseMenuController>();
 
-        Scene activeScene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(activeScene.buildIndex);
+        if (pauseMenu != null)
+        {
+            pauseMenu.RestartGame();
+            return;
+        }
+
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(gameObject.scene.path);
     }
 }

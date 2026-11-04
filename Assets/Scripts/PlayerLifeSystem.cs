@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class PlayerLifeSystem : MonoBehaviour
 {
@@ -6,8 +7,8 @@ public class PlayerLifeSystem : MonoBehaviour
     [SerializeField] private int startingLives = 3;
 
     [Header("Fall Detection")]
-    [Tooltip("The vertical distance below the checkpoint that counts as a fall.")]
-    [SerializeField] private float fallDistanceBelowCheckpoint = 4f;
+    [FormerlySerializedAs("fallDistanceBelowCheckpoint")]
+    [SerializeField] private float fallDistance = 5f;
 
     [Header("User Interface")]
     [SerializeField] private UnityEngine.UI.Text lifeText;
@@ -19,8 +20,10 @@ public class PlayerLifeSystem : MonoBehaviour
     public bool LivesActive { get; private set; }
     public bool IsGameOver => CurrentLives <= 0;
 
-    private Transform activeCheckpoint;
+    private Transform respawnPoint;
     private BeginnerPlayerController player;
+    private Rigidbody playerBody;
+    private float fallStartY;
     private bool fallHandled;
 
     void Awake()
@@ -33,29 +36,52 @@ public class PlayerLifeSystem : MonoBehaviour
         UpdateLifeText();
     }
 
+    void Start()
+    {
+        player = FindFirstObjectByType<BeginnerPlayerController>();
+
+        if (player == null || player.resetPoint == null)
+            return;
+
+        playerBody = player.GetComponent<Rigidbody>();
+        respawnPoint = player.resetPoint;
+        fallStartY = player.transform.position.y;
+        LivesActive = true;
+        fallHandled = false;
+
+        UpdateLifeText();
+    }
+
     void Update()
     {
         if (!LivesActive || IsGameOver)
             return;
 
-        if (activeCheckpoint == null || player == null)
+        if (player == null || playerBody == null || respawnPoint == null)
             return;
+
+        float playerY = player.transform.position.y;
 
         if (fallHandled)
         {
-            if (player.transform.position.y
-                >= activeCheckpoint.position.y - 1f)
+            Vector3 offset = player.transform.position - respawnPoint.position;
+
+            if (offset.sqrMagnitude <= 4f)
             {
                 fallHandled = false;
+                fallStartY = playerY;
             }
 
             return;
         }
 
-        float fallLimit =
-            activeCheckpoint.position.y - fallDistanceBelowCheckpoint;
+        if (playerBody.linearVelocity.y >= -0.1f)
+        {
+            fallStartY = playerY;
+            return;
+        }
 
-        if (player.transform.position.y < fallLimit)
+        if (fallStartY - playerY >= fallDistance)
             HandleFall();
     }
 
@@ -66,8 +92,10 @@ public class PlayerLifeSystem : MonoBehaviour
         if (checkpoint == null || playerController == null)
             return;
 
-        activeCheckpoint = checkpoint;
+        respawnPoint = checkpoint;
         player = playerController;
+        playerBody = player.GetComponent<Rigidbody>();
+        fallStartY = player.transform.position.y;
         LivesActive = true;
         fallHandled = false;
 
@@ -104,9 +132,22 @@ public class PlayerLifeSystem : MonoBehaviour
     public void ResetLives()
     {
         CurrentLives = Mathf.Max(1, startingLives);
-        LivesActive = false;
-        activeCheckpoint = null;
         fallHandled = false;
+
+        if (player == null)
+            player = FindFirstObjectByType<BeginnerPlayerController>();
+
+        if (player != null)
+        {
+            playerBody = player.GetComponent<Rigidbody>();
+            respawnPoint = player.resetPoint;
+            fallStartY = player.transform.position.y;
+        }
+
+        LivesActive =
+            player != null &&
+            playerBody != null &&
+            respawnPoint != null;
 
         UpdateLifeText();
     }

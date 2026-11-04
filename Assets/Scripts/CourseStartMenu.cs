@@ -133,16 +133,21 @@ public class CourseStartMenu : MonoBehaviour
             "R  -  RETURN TO CHECKPOINT\n" +
             "ESC  -  PAUSE\n\n" +
             "ENEMIES\n" +
-            "The slime patrols high platforms. Jump on it or avoid its side.\n\n" +
+            "SLIME - Patrols platforms. Stomp its head to defeat it and bounce.\n" +
+            "Touching its side knocks you back.\n" +
+            "BIRD - Flies up and down. Time your jump and stomp its head\n" +
+            "for a stronger bounce. Side contact knocks you back.\n" +
+            "GUARD - Patrols and chases you when you get close.\n" +
+            "It cannot be stomped; touching it knocks you back.\n\n" +
             "TOWER\n" +
             "Inside 50 metres, the tower attacks every 10 seconds.\n" +
             "Keep moving and dodge the blue ball. A hit freezes you for 1 second.\n" +
             "Climb out of the tower's range to continue safely.";
 
-        Text helpText = CreateText("Help Text", pagePanel, help, 27,
+        Text helpText = CreateText("Help Text", pagePanel, help, 24,
             new Vector2(0f, 25f), new Vector2(850f, 500f));
-        helpText.alignment = TextAnchor.MiddleCenter;
-        helpText.lineSpacing = 1.15f;
+        helpText.alignment = TextAnchor.UpperLeft;
+        helpText.lineSpacing = 1.05f;
 
         CreateButton(pagePanel, "BACK", -320f, ShowMainPage);
     }

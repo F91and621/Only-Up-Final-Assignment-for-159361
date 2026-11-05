@@ -9,7 +9,7 @@ public class RunRecord
     public float duration;
 }
 
-// 使用 PlayerPrefs 保存最多 20 条完成记录。
+// Saves up to 10 records.
 public static class RunRecordManager
 {
     const int MaxRecords = 10;

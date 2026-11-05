@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 玩家进入终点区域后结束游戏并打开记录页。
+// Finish area.
 public class FinishTrigger : MonoBehaviour
 {
     private bool finished;

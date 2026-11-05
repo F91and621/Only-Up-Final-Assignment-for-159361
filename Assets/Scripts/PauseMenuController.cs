@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 按 Esc 暂停游戏，也负责重新加载当前场景。
+// Pause and restart.
 public class PauseMenuController : MonoBehaviour
 {
     [SerializeField] private GameObject pausePanel;
@@ -179,7 +179,7 @@ public class PauseMenuController : MonoBehaviour
             rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, y);
     }
 
-    Button CreateButton(Transform parent, string name, string label,
+    void CreateButton(Transform parent, string name, string label,
         float y, UnityEngine.Events.UnityAction action)
     {
         RectTransform rect = CreateWhiteBox(name, parent,
@@ -194,7 +194,6 @@ public class PauseMenuController : MonoBehaviour
 
         CreateText(rect, "Label", label, 30, Vector2.zero,
             new Vector2(320f, 66f));
-        return button;
     }
 
     RectTransform CreateWhiteBox(string name, Transform parent,

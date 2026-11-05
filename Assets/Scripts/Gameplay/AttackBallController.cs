@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 小球每隔一段时间攻击玩家，然后返回原位。
+// Ball attack cycle.
 public class AttackBallController : MonoBehaviour
 {
     public float detectionRange = 50f;
@@ -13,11 +13,10 @@ public class AttackBallController : MonoBehaviour
 
     private Transform player;
     private Vector3 homePosition;
-    private Vector3 targetPosition;
     private float attackTimer;
     private float waitTimer;
 
-    // 0 = 等待，1 = 攻击，2 = 返回。
+    // 0 wait, 1 attack, 2 return.
     private int state;
 
     void Start()
@@ -56,14 +55,13 @@ public class AttackBallController : MonoBehaviour
         if (distance > detectionRange)
             return;
 
-        targetPosition = player.position + Vector3.up * 1.2f;
         attackTimer = maximumAttackTime;
         state = 1;
     }
 
     void MoveToTarget()
     {
-        targetPosition = player.position + Vector3.up * 1.2f;
+        Vector3 targetPosition = player.position + Vector3.up * 1.2f;
         attackTimer -= Time.deltaTime;
 
         transform.position = Vector3.MoveTowards(

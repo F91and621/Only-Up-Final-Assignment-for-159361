@@ -292,7 +292,7 @@ public class CourseStartMenu : MonoBehaviour
         }
     }
 
-    Button CreateButton(Transform parent, string label, float y,
+    void CreateButton(Transform parent, string label, float y,
         UnityEngine.Events.UnityAction action)
     {
         RectTransform rect = CreatePanel(label + " Button", parent, Color.white);
@@ -306,7 +306,6 @@ public class CourseStartMenu : MonoBehaviour
 
         CreateText("Label", rect, label, 30, Vector2.zero,
             new Vector2(330f, 66f));
-        return button;
     }
 
     RectTransform CreatePanel(string name, Transform parent, Color color)

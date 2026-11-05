@@ -2,47 +2,47 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// 控制玩家移动、跳跃和动画。
+// Controls player movement, jumping, and animation.
 [RequireComponent(typeof(Rigidbody))]
 public class BeginnerPlayerController : MonoBehaviour
 {
-    [Header("移动")]
+    [Header("Movement")]
     public float moveSpeed = 5f;
     public float turnSpeed = 10f;
 
-    [Header("速度控制")]
+    [Header("Speed Control")]
     public float minimumMoveSpeed = 2f;
     public float maximumMoveSpeed = 8f;
     public float speedChangeRate = 12f;
 
-    [Header("跳跃")]
+    [Header("Jumping")]
     public float jumpSpeed = 7f;
-    [Tooltip("松开空格后上升阶段的重力倍率；轻按短跳，按住保持原有高度。")]
+    [Tooltip("Gravity multiplier while rising after the jump key is released. Tap for a short jump or hold for full height.")]
     public float shortJumpGravityMultiplier = 2.2f;
-    [Tooltip("下落时的重力倍率；不改变起跳高度，只缩短落地等待。")]
+    [Tooltip("Gravity multiplier while falling. This shortens the fall without changing jump height.")]
     public float fallGravityMultiplier = 1.8f;
-    [Tooltip("落地前按下跳跃键时，保留输入的时间。")]
+    [Tooltip("Time that a jump input remains buffered before landing.")]
     public float jumpBufferTime = 0.15f;
     public float minimumGroundNormalY = 0.4f;
-    [Tooltip("空中改变水平方向的速度，避免跳到障碍边缘后一直被卡住。")]
+    [Tooltip("Horizontal acceleration while airborne, allowing the player to move away from obstacle edges.")]
     public float airControlAcceleration = 16f;
-    [Tooltip("离开不平整地面后，仍可起跳的短暂时间。")]
+    [Tooltip("Short grace period during which the player can still jump after leaving uneven ground.")]
     public float groundedGraceTime = 0.15f;
 
-    [Header("攻击")]
+    [Header("Attack")]
     public Key attackKey = Key.F;
 
-    [Header("重置")]
+    [Header("Reset")]
     public Transform resetPoint;
-    [Tooltip("包含 Player/Reset Action 的 Input Actions 资产。")]
+    [Tooltip("Input Actions asset containing the Player/Reset action.")]
     public InputActionAsset playerActions;
     public Key resetKey = Key.R;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-    [Header("测试飞行（仅 Editor / Development Build）")]
-    [Tooltip("按此键切换测试飞行模式。")]
+    [Header("Test Flight (Editor / Development Build Only)")]
+    [Tooltip("Press this key to toggle test flight mode.")]
     public Key flightToggleKey = Key.F2;
-    [Tooltip("飞行时的移动速度。Shift 上升，Ctrl 下降，WASD 水平移动。")]
+    [Tooltip("Movement speed in flight. Use Shift to rise, Ctrl to descend, and WASD to move horizontally.")]
     public float flightSpeed = 12f;
 #endif
 
@@ -73,8 +73,8 @@ public class BeginnerPlayerController : MonoBehaviour
     {
         playerRigidbody = GetComponent<Rigidbody>();
         playerCollider = GetComponent<Collider>();
-        // 碰撞会对刚体施加扭矩；锁住物理旋转，避免撞墙时改变角色朝向。
-        // 角色转向仍由 MoveRotation 在 MovePlayer 中明确控制。
+        // Collisions can apply torque to the rigidbody, so physics rotation is locked
+        // while character turning remains controlled explicitly by MoveRotation.
         playerRigidbody.constraints |= RigidbodyConstraints.FreezeRotation;
         playerAnimator = GetComponentInChildren<Animator>();
         mainCamera = Camera.main;
@@ -266,7 +266,7 @@ public class BeginnerPlayerController : MonoBehaviour
 
         if (isAttacking)
         {
-            // 攻击期间原地站定，避免输入或惯性让角色继续移动。
+            // Keep the player stationary during an attack.
             velocity.x = 0f;
             velocity.z = 0f;
             playerRigidbody.linearVelocity = velocity;
@@ -275,7 +275,8 @@ public class BeginnerPlayerController : MonoBehaviour
 
         if (!isGrounded)
         {
-            // 以碰撞后的真实速度为起点转向，避免反复把起跳速度写回、把角色推在障碍上。
+            // Steer from the current post-collision velocity to avoid repeatedly
+            // restoring takeoff velocity and pushing the player into obstacles.
             if (moveDirection != Vector3.zero)
             {
                 Vector3 targetVelocity = moveDirection * currentMoveSpeed;
@@ -346,7 +347,6 @@ public class BeginnerPlayerController : MonoBehaviour
             playerRigidbody.useGravity = gravityWasEnabled;
         }
 
-        Debug.Log($"Test flight mode: {(isFlightEnabled ? "enabled" : "disabled")}");
     }
 #endif
 
@@ -362,7 +362,7 @@ public class BeginnerPlayerController : MonoBehaviour
         playerRigidbody.linearVelocity = velocity;
 
         isGrounded = false;
-        // 起跳后清除宽限时间，防止连续按键造成二段跳。
+        // Clear the grace period after takeoff to prevent unintended double jumps.
         lastGroundedTime = float.NegativeInfinity;
 
         if (playerAnimator != null)
@@ -455,10 +455,11 @@ public class BeginnerPlayerController : MonoBehaviour
 
     IEnumerator WaitForAttackToFinish()
     {
-        // Animator 会在当前 Update 结束后处理 Trigger，因此先等待一帧。
+        // The Animator processes the trigger after the current Update, so wait one frame.
         yield return null;
 
-        // 地面状态在按键后改变时，攻击转场可能被取消；不能无限锁住移动。
+        // The attack transition may be cancelled if the grounded state changes after input.
+        // Use a deadline so movement cannot remain locked indefinitely.
         float enterDeadline = Time.time + 0.5f;
         while (!playerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack")
             && Time.time < enterDeadline)
@@ -471,7 +472,7 @@ public class BeginnerPlayerController : MonoBehaviour
             yield break;
         }
 
-        // 攻击状态及其退出混合完成前，保持禁止移动。
+        // Keep movement disabled until the attack state and exit blend are complete.
         float finishDeadline = Time.time + 2f;
         while (playerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack")
             || playerAnimator.IsInTransition(0))
@@ -486,7 +487,7 @@ public class BeginnerPlayerController : MonoBehaviour
 
     void UpdateGroundedState()
     {
-        // 上升阶段不能把仍贴近脚底的平台重新判定为落地。
+        // Do not treat a platform near the feet as ground while the player is rising.
         if (playerRigidbody.linearVelocity.y > 0.1f || playerCollider == null)
         {
             isGrounded = false;
@@ -496,7 +497,7 @@ public class BeginnerPlayerController : MonoBehaviour
         Bounds bounds = playerCollider.bounds;
         Vector3 origin = new Vector3(bounds.center.x, bounds.min.y + 0.35f, bounds.center.z);
         float sampleOffset = Mathf.Min(bounds.extents.x, bounds.extents.z) * 0.5f;
-        // 细木梁可能恰好落在射线之间；先用球体覆盖脚掌范围。
+        // Thin beams can fall between ray samples, so use a sphere cast across the feet first.
         Vector3 sphereOrigin = new Vector3(bounds.center.x,
             bounds.min.y + 0.65f, bounds.center.z);
         float sphereRadius = Mathf.Min(bounds.extents.x, bounds.extents.z) * 0.7f;
@@ -573,7 +574,7 @@ public class BeginnerPlayerController : MonoBehaviour
             animationMovement = 0f;
 #endif
         playerAnimator.SetFloat("Speed", animationMovement);
-        // 复用跑步动画，并按实际移动速度调整其播放速度。
+        // Reuse the running animation and scale its playback speed to actual movement speed.
         float runAnimationSpeed = currentMoveSpeed / Mathf.Max(moveSpeed, 0.01f);
         playerAnimator.SetFloat("AnimationSpeed", runAnimationSpeed);
         playerAnimator.SetBool("IsGrounded", isGrounded);

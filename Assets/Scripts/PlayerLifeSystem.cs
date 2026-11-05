@@ -129,29 +129,6 @@ public class PlayerLifeSystem : MonoBehaviour
         return CurrentLives > 0;
     }
 
-    public void ResetLives()
-    {
-        CurrentLives = Mathf.Max(1, startingLives);
-        fallHandled = false;
-
-        if (player == null)
-            player = FindFirstObjectByType<BeginnerPlayerController>();
-
-        if (player != null)
-        {
-            playerBody = player.GetComponent<Rigidbody>();
-            respawnPoint = player.resetPoint;
-            fallStartY = player.transform.position.y;
-        }
-
-        LivesActive =
-            player != null &&
-            playerBody != null &&
-            respawnPoint != null;
-
-        UpdateLifeText();
-    }
-
     void UpdateLifeText()
     {
         if (lifeText != null)

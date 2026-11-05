@@ -7,13 +7,11 @@ public class ScoreObject : MonoBehaviour
     // The wsq scene uses prefab instances directly instead of the old landing
     // proxy objects. Add the scoring component to every current course platform
     // at runtime so prefab replacements do not silently remove scoring again.
-    public static int ConfigureCoursePlatforms()
+    public static void ConfigureCoursePlatforms()
     {
         GameObject courseRoot = GameObject.Find("Only Up Course");
         if (courseRoot == null)
-            return 0;
-
-        int configuredCount = 0;
+            return;
 
         foreach (Transform child in courseRoot.transform)
         {
@@ -24,8 +22,7 @@ public class ScoreObject : MonoBehaviour
             if ((!isFurniturePlatform && !isExtensionPlatform) || isStartingPlatform)
                 continue;
 
-            if (ConfigurePlatform(child))
-                configuredCount++;
+            ConfigurePlatform(child);
         }
 
         // The upper half of the wsq course is made from root-level prefab
@@ -43,26 +40,19 @@ public class ScoreObject : MonoBehaviour
                 && position.y >= 39f && position.y <= 100f
                 && position.z >= 35f && position.z <= 64f;
 
-            if (isUpperCourseAsset && isInsideUpperCourse
-                && ConfigurePlatform(platform))
-            {
-                configuredCount++;
-            }
+            if (isUpperCourseAsset && isInsideUpperCourse)
+                ConfigurePlatform(platform);
         }
-
-        return configuredCount;
     }
 
-    private static bool ConfigurePlatform(Transform platform)
+    private static void ConfigurePlatform(Transform platform)
     {
         // Only configure objects that can actually receive a landing collision.
         if (platform.GetComponentInChildren<Collider>(true) == null)
-            return false;
+            return;
 
         if (platform.GetComponent<ScoreObject>() == null)
             platform.gameObject.AddComponent<ScoreObject>();
-
-        return true;
     }
 
     public void TryAwardPoint()

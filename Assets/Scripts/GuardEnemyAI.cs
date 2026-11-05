@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-// 在两个路点间巡逻，发现玩家后追逐，失去玩家后返回巡逻。
+// Patrol between two points, chase a nearby player, then return to patrol
 [RequireComponent(typeof(NavMeshAgent))]
 public class GuardEnemyAI : MonoBehaviour
 {
@@ -10,7 +10,6 @@ public class GuardEnemyAI : MonoBehaviour
     public Transform patrolPointB;
     public float noticeDistance = 7f;
     public float loseDistance = 11f;
-    public float returnDelay = 1.5f;
     public float sideBumpSpeed = 5f;
     public float sideBumpUpSpeed = 3f;
     public float sideBumpControlDelay = 0.25f;
@@ -21,7 +20,6 @@ public class GuardEnemyAI : MonoBehaviour
 
     private NavMeshAgent agent;
     private Transform nextPatrolPoint;
-    private float lastPlayerNearbyTime;
     private float lastSideBumpTime = float.NegativeInfinity;
 
     void Start()
@@ -29,7 +27,7 @@ public class GuardEnemyAI : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         if (player == null || patrolPointA == null || patrolPointB == null)
         {
-            Debug.LogWarning(name + ": 请设置 Player 和两个 Patrol Point。", this);
+            Debug.LogWarning(name + ": Assign the Player and both Patrol Points.", this);
             enabled = false;
             return;
         }
@@ -45,16 +43,11 @@ public class GuardEnemyAI : MonoBehaviour
 
         float playerDistance = Vector3.Distance(transform.position, player.position);
         if (currentState != GuardState.Chase && playerDistance <= noticeDistance)
-        {
             currentState = GuardState.Chase;
-            lastPlayerNearbyTime = Time.time;
-        }
 
         if (currentState == GuardState.Chase)
         {
-            if (playerDistance <= loseDistance)
-                lastPlayerNearbyTime = Time.time;
-            else if (Time.time - lastPlayerNearbyTime >= returnDelay)
+            if (playerDistance > loseDistance)
             {
                 currentState = GuardState.Return;
                 SetDestination(nextPatrolPoint.position);

@@ -1,11 +1,10 @@
 using UnityEngine;
 
-// Flies up and down; stomping it gives the player a boost.
+// Flies up and down; stomping it gives the player a boost
 public class FlyingStompEnemy : MonoBehaviour
 {
     public float flyHeight = 3f;
     public float cycleSeconds = 4f;
-    public float phase;
     public float headHeight = 1.2f;
     public float stompBounceSpeed = 9f;
     public float sideBumpSpeed = 10f;
@@ -28,8 +27,8 @@ public class FlyingStompEnemy : MonoBehaviour
             return;
 
         Vector3 position = startPosition;
-        position.y += Mathf.Sin(Time.time * 2f * Mathf.PI / Mathf.Max(0.1f, cycleSeconds)
-            + phase) * flyHeight;
+        position.y -= Mathf.Sin(Time.time * 2f * Mathf.PI / Mathf.Max(0.1f, cycleSeconds))
+            * flyHeight;
         transform.localPosition = position;
     }
 
@@ -49,15 +48,20 @@ public class FlyingStompEnemy : MonoBehaviour
             return;
 
         BeginnerPlayerController player = other.GetComponentInParent<BeginnerPlayerController>();
-        if (player == null)
-            return;
-
         Rigidbody playerBody = other.attachedRigidbody;
-        if (playerBody == null)
+        if (player == null || playerBody == null)
             return;
 
-        bool landedOnHead = playerBody.linearVelocity.y <= 0.15f
-            && other.bounds.min.y >= transform.position.y + headHeight - 0.65f;
+        float feetY = other.bounds.min.y;
+        float fallSpeed = playerBody.linearVelocity.y;
+        float previousFeetY = feetY - fallSpeed * Time.fixedDeltaTime;
+        float headY = transform.position.y + headHeight;
+        Collider enemyCollider = GetComponent<Collider>();
+
+        // Estimate the previous foot height so a fast fall can still count as a stomp
+        bool landedOnHead = enemyCollider != null && fallSpeed < -0.1f
+            && previousFeetY >= headY - 0.2f
+            && feetY >= enemyCollider.bounds.center.y;
 
         if (landedOnHead)
         {
@@ -70,18 +74,20 @@ public class FlyingStompEnemy : MonoBehaviour
                 PlayerProgressUI.Instance.AddPoint();
 
             Destroy(gameObject);
+            return;
         }
-        else if (Time.time - lastSideBumpTime >= sideBumpCooldown)
-        {
-            Vector3 away = playerBody.position - transform.position;
-            away.y = 0f;
-            if (away.sqrMagnitude < 0.01f)
-                away = transform.right;
 
-            Vector3 bumpVelocity = away.normalized * sideBumpSpeed;
-            bumpVelocity.y = sideBumpUpSpeed;
-            player.ApplyEnemyBump(bumpVelocity, sideBumpControlDelay);
-            lastSideBumpTime = Time.time;
-        }
+        if (Time.time - lastSideBumpTime < sideBumpCooldown)
+            return;
+
+        Vector3 away = playerBody.position - transform.position;
+        away.y = 0f;
+        if (away.sqrMagnitude < 0.01f)
+            away = transform.right;
+
+        Vector3 bumpVelocity = away.normalized * sideBumpSpeed;
+        bumpVelocity.y = sideBumpUpSpeed;
+        player.ApplyEnemyBump(bumpVelocity, sideBumpControlDelay);
+        lastSideBumpTime = Time.time;
     }
 }

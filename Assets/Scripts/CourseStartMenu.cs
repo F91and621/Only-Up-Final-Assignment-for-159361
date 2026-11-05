@@ -5,7 +5,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 开始菜单、说明页和记录页都放在这个脚本里。
+// Creates the start menu, help page, and records page.
 public class CourseStartMenu : MonoBehaviour
 {
     private BeginnerPlayerController playerController;

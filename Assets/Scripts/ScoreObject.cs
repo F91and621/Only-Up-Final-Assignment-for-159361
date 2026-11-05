@@ -4,44 +4,30 @@ public class ScoreObject : MonoBehaviour
 {
     private bool alreadyScored;
 
-    // The wsq scene uses prefab instances directly instead of the old landing
-    // proxy objects. Add the scoring component to every current course platform
-    // at runtime so prefab replacements do not silently remove scoring again.
+    // Add scoring to the original prefab instances along the climb route.
     public static void ConfigureCoursePlatforms()
     {
-        GameObject courseRoot = GameObject.Find("Only Up Course");
-        if (courseRoot == null)
+        GameObject onlyUpRoot = GameObject.Find("Only_Up");
+        if (onlyUpRoot == null)
             return;
 
-        foreach (Transform child in courseRoot.transform)
+        foreach (Transform child in onlyUpRoot.transform)
         {
-            bool isFurniturePlatform = child.name.StartsWith("Furniture Visual ");
-            bool isExtensionPlatform = child.name.StartsWith("Course ");
-            bool isStartingPlatform = child.name.StartsWith("Furniture Visual 00");
+            bool isPlatformAsset = child.name.StartsWith("rpgpp_lt_")
+                || child.name == "Box_1"
+                || child.name == "Armchair_Classic"
+                || child.name == "Coffee_table_2"
+                || child.name == "Night_light_1"
+                || child.name == "Gamepad_Classic";
+            Vector3 position = child.position;
+            bool isOnCourse = position.x >= 58f && position.x <= 86f
+                && position.y >= 24f && position.y <= 100f
+                && position.z >= 35f && position.z <= 64f;
 
-            if ((!isFurniturePlatform && !isExtensionPlatform) || isStartingPlatform)
+            if (!isPlatformAsset || !isOnCourse)
                 continue;
 
             ConfigurePlatform(child);
-        }
-
-        // The upper half of the wsq course is made from root-level prefab
-        // instances rather than children of Only Up Course. They form a narrow
-        // ascending route above the original furniture section.
-        foreach (GameObject rootObject in courseRoot.scene.GetRootGameObjects())
-        {
-            Transform platform = rootObject.transform;
-            Vector3 position = platform.position;
-
-            bool isUpperCourseAsset = platform.name.StartsWith("rpgpp_lt_")
-                || platform.name == "Night_light_1"
-                || platform.name == "Gamepad_Classic";
-            bool isInsideUpperCourse = position.x >= 58f && position.x <= 86f
-                && position.y >= 39f && position.y <= 100f
-                && position.z >= 35f && position.z <= 64f;
-
-            if (isUpperCourseAsset && isInsideUpperCourse)
-                ConfigurePlatform(platform);
         }
     }
 

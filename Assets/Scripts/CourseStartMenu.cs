@@ -28,7 +28,6 @@ public class CourseStartMenu : MonoBehaviour
         cameraController = FindFirstObjectByType<BeginnerCameraController>();
 
         AudioListener.volume = PlayerPrefs.GetFloat(VolumeKey, 1f);
-        StartBackgroundMusic();
         SetPlayerControl(false);
         Time.timeScale = 0f;
         UnlockMouse();
@@ -151,23 +150,6 @@ public class CourseStartMenu : MonoBehaviour
             int percent = Mathf.RoundToInt(AudioListener.volume * 100f);
             volumeText.text = "VOLUME: " + percent + "%";
         }
-    }
-
-    void StartBackgroundMusic()
-    {
-        AudioClip music = Resources.Load<AudioClip>("Audio/BackgroundMusic");
-        if (music == null)
-            return;
-
-        AudioSource source = GetComponent<AudioSource>();
-        if (source == null)
-            source = gameObject.AddComponent<AudioSource>();
-
-        source.clip = music;
-        source.loop = true;
-        source.playOnAwake = false;
-        source.spatialBlend = 0f;
-        source.Play();
     }
 
     string BuildRecordsText()

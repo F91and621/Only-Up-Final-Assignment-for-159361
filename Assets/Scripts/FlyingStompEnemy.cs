@@ -1,6 +1,7 @@
 using UnityEngine;
 
-// Flies up and down; stomping it gives the player a boost
+// Flying stomp enemy.
+[RequireComponent(typeof(Rigidbody), typeof(Collider))]
 public class FlyingStompEnemy : MonoBehaviour
 {
     public float flyHeight = 3f;
@@ -12,24 +13,30 @@ public class FlyingStompEnemy : MonoBehaviour
     public float sideBumpControlDelay = 0.25f;
     public float sideBumpCooldown = 0.75f;
 
-    Vector3 startPosition;
-    bool defeated;
-    float lastSideBumpTime = float.NegativeInfinity;
+    private Rigidbody enemyBody;
+    private Collider enemyCollider;
+    private Vector3 startPosition;
+    private bool defeated;
+    private float lastSideBumpTime = float.NegativeInfinity;
 
     void Start()
     {
+        enemyBody = GetComponent<Rigidbody>();
+        enemyCollider = GetComponent<Collider>();
         startPosition = transform.localPosition;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (defeated)
             return;
 
-        Vector3 position = startPosition;
-        position.y -= Mathf.Sin(Time.time * 2f * Mathf.PI / Mathf.Max(0.1f, cycleSeconds))
-            * flyHeight;
-        transform.localPosition = position;
+        Vector3 localPosition = startPosition;
+        localPosition.y -= Mathf.Sin(Time.time * 2f * Mathf.PI
+            / Mathf.Max(0.1f, cycleSeconds)) * flyHeight;
+        Vector3 worldPosition = transform.parent == null
+            ? localPosition : transform.parent.TransformPoint(localPosition);
+        enemyBody.MovePosition(worldPosition);
     }
 
     void OnTriggerEnter(Collider other)
@@ -47,7 +54,8 @@ public class FlyingStompEnemy : MonoBehaviour
         if (defeated)
             return;
 
-        BeginnerPlayerController player = other.GetComponentInParent<BeginnerPlayerController>();
+        BeginnerPlayerController player =
+            other.GetComponentInParent<BeginnerPlayerController>();
         Rigidbody playerBody = other.attachedRigidbody;
         if (player == null || playerBody == null)
             return;
@@ -56,9 +64,6 @@ public class FlyingStompEnemy : MonoBehaviour
         float fallSpeed = playerBody.linearVelocity.y;
         float previousFeetY = feetY - fallSpeed * Time.fixedDeltaTime;
         float headY = transform.position.y + headHeight;
-        Collider enemyCollider = GetComponent<Collider>();
-
-        // Estimate the previous foot height so a fast fall can still count as a stomp
         bool landedOnHead = enemyCollider != null && fallSpeed < -0.1f
             && previousFeetY >= headY - 0.2f
             && feetY >= enemyCollider.bounds.center.y;
@@ -69,17 +74,14 @@ public class FlyingStompEnemy : MonoBehaviour
             Vector3 velocity = playerBody.linearVelocity;
             velocity.y = stompBounceSpeed;
             playerBody.linearVelocity = velocity;
-
             if (PlayerProgressUI.Instance != null)
                 PlayerProgressUI.Instance.AddPoint();
-
             Destroy(gameObject);
             return;
         }
 
         if (Time.time - lastSideBumpTime < sideBumpCooldown)
             return;
-
         Vector3 away = playerBody.position - transform.position;
         away.y = 0f;
         if (away.sqrMagnitude < 0.01f)

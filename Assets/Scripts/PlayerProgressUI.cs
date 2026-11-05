@@ -5,10 +5,7 @@ public class PlayerProgressUI : MonoBehaviour
 {
     public static PlayerProgressUI Instance { get; private set; }
 
-    [Header("Gamer")]
     [SerializeField] private BeginnerPlayerController player;
-
-    [Header("TEXT")]
     [SerializeField] private Text heightText;
     [SerializeField] private Text scoreText;
     [SerializeField] private Text timeText;
@@ -20,20 +17,18 @@ public class PlayerProgressUI : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        ScoreObject.ConfigureCoursePlatforms();
     }
 
     void Start()
     {
         if (player == null)
             player = FindFirstObjectByType<BeginnerPlayerController>();
-
         if (player != null)
             startHeight = player.transform.position.y;
 
-        MakeTextClear(heightText);
-        MakeTextClear(scoreText);
-        MakeTextClear(timeText);
+        SetTextStyle(heightText);
+        SetTextStyle(scoreText);
+        SetTextStyle(timeText);
         UpdateScoreText();
     }
 
@@ -41,16 +36,11 @@ public class PlayerProgressUI : MonoBehaviour
     {
         gameTime += Time.deltaTime;
         UpdateTimeText();
-
         if (player == null || heightText == null)
             return;
 
-        float currentHeight =
-            player.transform.position.y - startHeight;
-
-        currentHeight = Mathf.Max(0f, currentHeight);
-
-        heightText.text = $"HEIGHT: {currentHeight:0.0} m";
+        float height = player.transform.position.y - startHeight;
+        heightText.text = $"HEIGHT: {Mathf.Max(0f, height):0.0} m";
     }
 
     public void AddPoint()
@@ -64,11 +54,10 @@ public class PlayerProgressUI : MonoBehaviour
         return gameTime;
     }
 
-    void MakeTextClear(Text text)
+    void SetTextStyle(Text text)
     {
         if (text == null)
             return;
-
         text.color = Color.black;
         text.fontStyle = FontStyle.Bold;
         text.fontSize = 34;
@@ -85,7 +74,6 @@ public class PlayerProgressUI : MonoBehaviour
     {
         if (timeText == null)
             return;
-
         int minutes = Mathf.FloorToInt(gameTime / 60f);
         int seconds = Mathf.FloorToInt(gameTime % 60f);
         timeText.text = $"TIME: {minutes:00}:{seconds:00}";

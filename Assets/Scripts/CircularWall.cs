@@ -9,23 +9,20 @@ public class CircularWall : MonoBehaviour
 
     void Start()
     {
-        float angleStep = 360f / segments;
-        // Make each section slightly wider to close gaps.
-        float width = 2f * Mathf.PI * radius / segments * 1.05f;
+        int count = Mathf.Max(3, segments);
+        float angleStep = 360f / count;
+        float width = 2f * Mathf.PI * radius / count * 1.05f;
 
-        for (int i = 0; i < segments; i++)
+        for (int i = 0; i < count; i++)
         {
-            float angle = i * angleStep;
-            float rad = angle * Mathf.Deg2Rad;
-
-            Vector3 localPos = new Vector3(Mathf.Cos(rad) * radius, height / 2f, Mathf.Sin(rad) * radius);
+            float angle = i * angleStep * Mathf.Deg2Rad;
+            Vector3 position = new Vector3(Mathf.Cos(angle) * radius,
+                height / 2f, Mathf.Sin(angle) * radius);
 
             GameObject wall = new GameObject("Wall_" + i);
             wall.transform.SetParent(transform);
-            wall.transform.localPosition = localPos;
-            // Face each section toward the centre.
+            wall.transform.localPosition = position;
             wall.transform.LookAt(transform.position + Vector3.up * (height / 2f));
-
             BoxCollider box = wall.AddComponent<BoxCollider>();
             box.size = new Vector3(width, height, thickness);
         }

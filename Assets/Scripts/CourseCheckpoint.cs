@@ -1,10 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class CourseCheckpoint : MonoBehaviour
 {
     public Key interactionKey = Key.E;
+    [SerializeField] private Text messageText;
 
+    private static CourseCheckpoint messageOwner;
     private bool activated;
     private BeginnerPlayerController nearbyPlayer;
     private Rigidbody nearbyBody;
@@ -15,44 +18,43 @@ public class CourseCheckpoint : MonoBehaviour
     {
         if (activated)
             return;
-
-        BeginnerPlayerController player = other.GetComponent<BeginnerPlayerController>();
+        BeginnerPlayerController player =
+            other.GetComponentInParent<BeginnerPlayerController>();
         if (player == null)
             return;
 
         nearbyPlayer = player;
-        nearbyBody = other.GetComponent<Rigidbody>();
+        nearbyBody = other.attachedRigidbody;
         nearbyCollider = other;
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.GetComponent<BeginnerPlayerController>() == nearbyPlayer)
-        {
-            nearbyPlayer = null;
-            nearbyBody = null;
-            nearbyCollider = null;
-        }
+        if (other.GetComponentInParent<BeginnerPlayerController>() != nearbyPlayer)
+            return;
+        nearbyPlayer = null;
+        nearbyBody = null;
+        nearbyCollider = null;
     }
 
     void Update()
     {
         Keyboard keyboard = Keyboard.current;
-        if (activated || keyboard == null || !CanActivate())
-            return;
+        if (!activated && keyboard != null && CanActivate()
+            && keyboard[interactionKey].wasPressedThisFrame)
+        {
+            ActivateCheckpoint();
+        }
+        UpdateMessage();
+    }
 
-        if (!keyboard[interactionKey].wasPressedThisFrame)
-            return;
-
+    void ActivateCheckpoint()
+    {
         activated = true;
         nearbyPlayer.SetResetPoint(transform);
-
-        PlayerLifeSystem lifeSystem =
-            FindFirstObjectByType<PlayerLifeSystem>();
-
+        PlayerLifeSystem lifeSystem = FindFirstObjectByType<PlayerLifeSystem>();
         if (lifeSystem != null)
             lifeSystem.ActivateLives(transform, nearbyPlayer);
-
         savedMessageUntil = Time.time + 3f;
     }
 
@@ -64,7 +66,7 @@ public class CourseCheckpoint : MonoBehaviour
             && Mathf.Abs(nearbyBody.linearVelocity.y) <= 0.3f;
     }
 
-    void OnGUI()
+    void UpdateMessage()
     {
         string message = null;
         if (activated && Time.time < savedMessageUntil)
@@ -72,19 +74,20 @@ public class CourseCheckpoint : MonoBehaviour
         else if (!activated && CanActivate())
             message = "Press E to save checkpoint";
 
-        if (message == null)
-            return;
-
-        GUIStyle style = new GUIStyle(GUI.skin.label);
-        style.fontSize = 22;
-        style.alignment = TextAnchor.MiddleCenter;
-        GUIStyle shadow = new GUIStyle(style);
-        shadow.normal.textColor = Color.black;
-        style.normal.textColor = Color.white;
-        Rect area = new Rect(Screen.width * 0.5f - 235f,
-            Screen.height - 90f, 470f, 48f);
-        GUI.Label(new Rect(area.x + 2f, area.y + 2f, area.width, area.height),
-            message, shadow);
-        GUI.Label(area, message, style);
+        if (message != null)
+        {
+            if (messageText != null)
+            {
+                messageText.text = message;
+                messageText.gameObject.SetActive(true);
+            }
+            messageOwner = this;
+        }
+        else if (messageOwner == this)
+        {
+            if (messageText != null)
+                messageText.gameObject.SetActive(false);
+            messageOwner = null;
+        }
     }
 }

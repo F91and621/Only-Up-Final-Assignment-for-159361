@@ -24,15 +24,15 @@ public static class RunRecordManager
     public static void AddRecord(float duration)
     {
         List<RunRecord> records = LoadRecords();
+        DateTime now = DateTime.Now;
         RunRecord record = new RunRecord();
-        record.id = DateTime.Now.ToString("yyyyMMddHHmmssfff");
-        record.date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        record.id = now.ToString("yyyyMMddHHmmssfff");
+        record.date = now.ToString("yyyy-MM-dd HH:mm");
         record.duration = duration;
         records.Add(record);
 
         if (records.Count > MaxRecords)
             records.RemoveAt(0);
-
         SaveRecords(records);
         PlayerPrefs.SetString(CurrentKey, record.id);
         PlayerPrefs.Save();
@@ -58,7 +58,6 @@ public static class RunRecordManager
     {
         List<RunRecord> records = new List<RunRecord>();
         int count = PlayerPrefs.GetInt(CountKey, 0);
-
         for (int i = 0; i < count; i++)
         {
             RunRecord record = new RunRecord();
@@ -67,7 +66,6 @@ public static class RunRecordManager
             record.duration = PlayerPrefs.GetFloat("RecordTime" + i, 0f);
             records.Add(record);
         }
-
         return records;
     }
 
